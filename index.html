@@ -1,124 +1,300 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>音符圖文對照練習</title>
+    <title>音樂節奏視覺化教學 - 白色清晰穩定版</title>
     <style>
-        body { font-family: 'Microsoft JhengHei', sans-serif; background-color: #f0f4f8; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        /* 視覺跳動區域 */
-        .stage {
-            width: 100%; max-width: 400px; height: 120px; border-bottom: 6px solid #2c3e50;
-            position: relative; margin-bottom: 30px; background: #fff; border-radius: 15px;
-        }
-        .ball {
-            width: 45px; height: 45px; background: radial-gradient(circle at 30% 30%, #5dade2, #2e86c1);
-            border-radius: 50%; position: absolute; left: calc(50% - 22.5px); bottom: 0;
-            animation: bounce var(--speed, 1s) infinite ease-in-out;
-        }
-        @keyframes bounce {
-            0%, 100% { bottom: 0; transform: scaleY(0.85); }
-            50% { bottom: 80px; transform: scaleY(1); }
+        :root {
+            --bg-color: #ffffff;
+            --panel-bg: #f9f9f9;
+            --border-light: #e0e0e0;
+            --text-dark: #2c3e50;
+            --accent-green: #1eae5e;
+            --button-inactive: #ffffff;
+            --panel-footer: #34495e;
         }
 
-        /* 音符清單容器 */
-        .note-container { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 12px; }
-        
-        /* 按鈕基本樣式 */
-        .note-row {
-            display: flex; align-items: center; background: white; padding: 15px 20px;
-            border-radius: 15px; border: 2px solid #d5dbdb; cursor: pointer; transition: 0.2s;
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
         }
-        .note-row:hover { background: #fdfefe; border-color: #3498db; }
-        .note-row.active { border-color: #27ae60; background: #e9f7ef; transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        /* 左側音符符號 */
-        .symbol { font-size: 4rem; width: 80px; text-align: center; margin-right: 15px; line-height: 1; }
+        .container {
+            width: 95%;
+            max-width: 900px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        h2 { text-align: center; margin: 0; font-size: 22px; }
+
+        /* 畫布樣式 */
+        #visualizer {
+            width: 100%;
+            height: 300px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            display: block;
+        }
+
+        /* 模式按鈕 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 10px 0;
+        }
+
+        button.mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+            border-radius: 30px;
+            background: var(--button-inactive);
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+
+        button.mode-btn.active {
+            background-color: var(--accent-green);
+            color: white;
+            border-color: var(--accent-green);
+            box-shadow: 0 4px 10px rgba(30, 174, 94, 0.3);
+        }
+
+        .note-icon { width: 20px; height: 20px; fill: currentColor; }
+
+        /* 底部控制台 */
+        .footer-console {
+            background: var(--panel-footer);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .setting-group { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .setting-item { display: flex; align-items: center; gap: 8px; }
         
-        /* 右側文字資訊 */
-        .info { display: flex; flex-direction: column; }
-        .name { font-size: 1.6rem; font-weight: bold; color: #2c3e50; }
-        .desc { font-size: 1rem; color: #7f8c8d; margin-top: 4px; }
+        .bpm-slider { width: 120px; cursor: pointer; }
+        .bpm-value { color: var(--accent-green); font-weight: bold; min-width: 60px; }
+        
+        select { padding: 6px 12px; border-radius: 8px; border: none; font-weight: bold; }
 
-        /* 不同音符的色彩標記 */
-        .c-whole { color: #e74c3c; border-left: 10px solid #e74c3c; }
-        .c-half { color: #f39c12; border-left: 10px solid #f39c12; }
-        .c-quarter { color: #27ae60; border-left: 10px solid #27ae60; }
-        .c-eighth { color: #8e44ad; border-left: 10px solid #8e44ad; }
+        #audioBtn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            border: none;
+            background: #e74c3c;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
     </style>
 </head>
 <body>
 
-    <h1 style="color:#2c3e50;">🎵 音符看一看、聽一聽</h1>
+<div class="container">
+    <h2>🎶 音樂節奏視覺化教學</h2>
     
-    <div class="stage">
-        <div class="ball" id="ball"></div>
+    <canvas id="visualizer"></canvas>
+
+    <div class="controls">
+        <button class="mode-btn" id="btn-whole" onclick="setNote('whole')">
+            <div id="icon-whole"></div> 全音符 (4拍)
+        </button>
+        <button class="mode-btn" id="btn-half" onclick="setNote('half')">
+            <div id="icon-half"></div> 二分音符 (2拍)
+        </button>
+        <button class="mode-btn active" id="btn-quarter" onclick="setNote('quarter')">
+            <div id="icon-quarter"></div> 四分音符 (1拍)
+        </button>
+        <button class="mode-btn" id="btn-eighth" onclick="setNote('eighth')">
+            <div id="icon-eighth"></div> 八分音符 (0.5拍)
+        </button>
     </div>
 
-    <div class="note-container">
-        <div class="note-row c-whole" onclick="play(4, '全音符', this)">
-            <div class="symbol">𝅝</div>
-            <div class="info">
-                <span class="name">全音符</span>
-                <span class="desc">長長的音 (4拍)</span>
+    <div class="footer-console">
+        <div class="setting-group">
+            <div class="setting-item">
+                <label>速度</label>
+                <input type="range" id="bpmRange" min="30" max="240" value="60" class="bpm-slider">
+                <span class="bpm-value" id="bpmDisplay">60 BPM</span>
+            </div>
+            <div class="setting-item">
+                <label>音色</label>
+                <select id="soundType">
+                    <option value="woodblock">電子木魚</option>
+                    <option value="drum">重低音鼓</option>
+                    <option value="water">清脆水滴</option>
+                    <option value="piano">鋼琴短音</option>
+                </select>
             </div>
         </div>
-
-        <div class="note-row c-half" onclick="play(2, '二分音符', this)">
-            <div class="symbol">𝅗𝅥</div>
-            <div class="info">
-                <span class="name">二分音符</span>
-                <span class="desc">慢走 (2拍)</span>
-            </div>
-        </div>
-
-        <div class="note-row c-quarter" onclick="play(1, '四分音符', this)">
-            <div class="symbol">𝅘𝅥</div>
-            <div class="info">
-                <span class="name">四分音符</span>
-                <span class="desc">踏步 (1拍)</span>
-            </div>
-        </div>
-
-        <div class="note-row c-eighth" onclick="play(0.5, '八分音符', this)">
-            <div class="symbol">𝅘𝅥𝅮</div>
-            <div class="info">
-                <span class="name">八分音符</span>
-                <span class="desc">快快跑 (0.5拍)</span>
-            </div>
-        </div>
+        <button id="audioBtn" onclick="toggleAudio()">🔇 點擊開啟聲音系統</button>
     </div>
+</div>
 
-    <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let loop = null;
+<script>
+    // SVG 圖標數據
+    const svgData = {
+        whole: `<svg class="note-icon" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="35" ry="22" stroke="currentColor" stroke-width="10" fill="none"/></svg>`,
+        half: `<svg class="note-icon" viewBox="0 0 100 100"><ellipse cx="40" cy="70" rx="20" ry="14" stroke="currentColor" stroke-width="8" fill="none"/><line x1="60" y1="70" x2="60" y2="20" stroke="currentColor" stroke-width="8"/></svg>`,
+        quarter: `<svg class="note-icon" viewBox="0 0 100 100"><ellipse cx="40" cy="70" rx="20" ry="14" fill="currentColor"/><line x1="60" y1="70" x2="60" y2="20" stroke="currentColor" stroke-width="8"/></svg>`,
+        eighth: `<svg class="note-icon" viewBox="0 0 100 100"><ellipse cx="40" cy="70" rx="20" ry="14" fill="currentColor"/><line x1="60" y1="70" x2="60" y2="20" stroke="currentColor" stroke-width="8"/><path d="M60 20 Q 85 30 85 55" stroke="currentColor" stroke-width="8" fill="none"/></svg>`
+    };
 
-        function play(sec, label, el) {
-            // 切換 active 狀態
-            document.querySelectorAll('.note-row').forEach(row => row.classList.remove('active'));
-            el.classList.add('active');
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d');
+    const bpmRange = document.getElementById('bpmRange');
+    const bpmDisplay = document.getElementById('bpmDisplay');
+    const audioBtn = document.getElementById('audioBtn');
+    const soundSelect = document.getElementById('soundType');
 
-            // 調整球跳動的速度
-            document.documentElement.style.setProperty('--speed', `${sec}s`);
+    let audioCtx = null;
+    let isAudioEnabled = false;
+    let bpm = 60;
+    let currentMode = 'quarter';
+    let startTime = performance.now() / 1000;
+    let lastCycle = -1;
 
-            // 重啟聲音循環
-            if(loop) clearInterval(loop);
-            sound(); // 點擊當下先響
-            loop = setInterval(sound, sec * 1000);
+    const durations = { whole: 4, half: 2, quarter: 1, eighth: 0.5 };
+
+    function init() {
+        Object.keys(svgData).forEach(key => {
+            document.getElementById('icon-' + key).innerHTML = svgData[key];
+        });
+        resize();
+        requestAnimationFrame(draw);
+    }
+
+    function toggleAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        isAudioEnabled = !isAudioEnabled;
+        audioBtn.innerText = isAudioEnabled ? "🔊 聲音已開啟" : "🔇 點擊開啟聲音系統";
+        audioBtn.style.background = isAudioEnabled ? "#1eae5e" : "#e74c3c";
+    }
+
+    function setNote(mode) {
+        currentMode = mode;
+        startTime = performance.now() / 1000;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + mode).classList.add('active');
+    }
+
+    bpmRange.oninput = function() {
+        bpm = this.value;
+        bpmDisplay.innerText = bpm + " BPM";
+    };
+
+    function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = canvas.offsetWidth * dpr;
+        canvas.height = canvas.offsetHeight * dpr;
+        ctx.scale(dpr, dpr);
+    }
+
+    function playSound() {
+        if (!isAudioEnabled || !audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const now = audioCtx.currentTime;
+        const type = soundSelect.value;
+
+        if (type === 'woodblock') {
+            osc.frequency.setValueAtTime(880, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        } else if (type === 'drum') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(100, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        } else {
+            osc.frequency.setValueAtTime(523, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         }
 
-        function sound() {
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4 音
-            g.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.connect(g);
-            g.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(now + 0.3);
+    }
+
+    function draw() {
+        const now = performance.now() / 1000;
+        const cycleSec = (60 / bpm) * durations[currentMode];
+        const progress = ((now - startTime) % cycleSec) / cycleSec;
+
+        const currentCycle = Math.floor((now - startTime) / cycleSec);
+        if (currentCycle !== lastCycle) { playSound(); lastCycle = currentCycle; }
+
+        const w = canvas.width / window.devicePixelRatio;
+        const h = canvas.height / window.devicePixelRatio;
+        ctx.clearRect(0, 0, w, h);
+
+        const ground = h * 0.8;
+        const peak = h * 0.2;
+        const jumpH = ground - peak;
+
+        let y;
+        if (progress < 0.5) {
+            y = ground - Math.sin(progress * 2 * (Math.PI / 2)) * jumpH;
+        } else {
+            y = peak + (1 - Math.cos((progress - 0.5) * 2 * (Math.PI / 2))) * jumpH;
         }
-    </script>
+
+        // 繪製陰影
+        const sScale = 1 - (ground - y) / jumpH;
+        ctx.beginPath();
+        ctx.ellipse(w/2, ground + 20, 20 * sScale, 5, 0, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(0,0,0,${0.15 * sScale})`;
+        ctx.fill();
+
+        // 繪製圓點 (強化立體感)
+        const grad = ctx.createRadialGradient(w/2 - 8, y - 8, 5, w/2, y, 25);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(1, '#d0d0d0');
+        
+        ctx.beginPath();
+        ctx.arc(w/2, y, 25, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(0,0,0,0.1)';
+        ctx.fill();
+        
+        // 畫一個深色細邊框
+        ctx.strokeStyle = '#999';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.shadowBlur = 0; // 重置陰影避免影響其他繪圖
+
+        requestAnimationFrame(draw);
+    }
+
+    window.onload = init;
+    window.onresize = resize;
+</script>
+
 </body>
 </html>
